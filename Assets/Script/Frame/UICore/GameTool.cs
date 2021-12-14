@@ -11,6 +11,8 @@ using System.Collections;
 using System.IO;
 using Random = UnityEngine.Random;
 using System.Threading;
+using System.Collections.ObjectModel;
+using System.Globalization;
 
 #region GameTool
 public static class GameTool
@@ -357,7 +359,7 @@ public static class GameTool
     /// <param name="t1"></param>
     /// <param name="t2"></param>
     /// <returns></returns>
-    public static int IndexSort<T>(T t1,T t2) where T : UnityEngine.Object
+    public static int IndexSort<T>(T t1, T t2) where T : UnityEngine.Object
     {
         return string.Compare(t2.name, t1.name);
     }
@@ -369,7 +371,7 @@ public static class GameTool
     /// <param name="t1"></param>
     /// <param name="t2"></param>
     /// <returns></returns>
-    public static int ReverseIndexSort<T>(T t1,T t2) where T : UnityEngine.Object
+    public static int ReverseIndexSort<T>(T t1, T t2) where T : UnityEngine.Object
     {
         return string.Compare(t1.name, t2.name);
     }
@@ -381,12 +383,12 @@ public static class GameTool
     /// <param name="scaler"></param>
     /// <param name="camera"></param>
     /// <returns></returns>
-    public static Vector2 World2UGUIPos(Vector3 worldPos,CanvasScaler scaler,Camera camera)
+    public static Vector2 World2UGUIPos(Vector3 worldPos, CanvasScaler scaler, Camera camera)
     {
         float x = scaler.referenceResolution.x;
         float y = scaler.referenceResolution.y;
         Vector2 viewPos = camera.WorldToViewportPoint(worldPos);
-        Vector2 uiPos = new Vector2(viewPos.x - 0.5f*x, viewPos.y - 0.5f*y);
+        Vector2 uiPos = new Vector2(viewPos.x - 0.5f * x, viewPos.y - 0.5f * y);
         return uiPos;
     }
 
@@ -448,7 +450,7 @@ public static class GameTool
     /// <param name="bottomRect"></param>
     /// <param name="upRect"></param>
     /// <returns></returns>
-    public static bool IsSheltered(Graphic bottomRect,Graphic upRect)
+    public static bool IsSheltered(Graphic bottomRect, Graphic upRect)
     {
         return RectTransformUtility.RectangleContainsScreenPoint(bottomRect.rectTransform, new Vector2(upRect.rectTransform.position.x, upRect.rectTransform.position.y));
     }
@@ -475,7 +477,7 @@ public delegate int IntCallbackFuncWithFloat(float param);
 #endregion
 
 #region Func拓展
-public sealed class FuncUtil
+public static class FuncUtil
 {
     /// <summary>
     /// 发起一个持续一段时间的Update函数，每一帧更新
@@ -636,6 +638,18 @@ public sealed class FuncUtil
         }
         return stringBuilder;
     }
+
+    /// <summary>
+    /// sb.AppendLine("{0}/{1}", 1, 1, 1, 1);
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="format"></param>
+    /// <param name="args"></param>
+    /// <returns></returns>
+    public static StringBuilder AppendLine(this StringBuilder self, string format, params object[] args)
+    {
+        return self.AppendFormat(format, args).AppendLine();
+    }
 }
 #endregion
 
@@ -649,10 +663,31 @@ public enum DeletType
 public static class DirectoryUtil
 {
     /// <summary>
+    /// 转PC路径
+    /// </summary>
+    /// <param name="self"></param>
+    /// <returns></returns>
+    public static string ToWindowsPath(this string self)
+    {
+        return self.Replace("/", "\\");
+    }
+
+    /// <summary>
+    /// 转IOS路径
+    /// </summary>
+    /// <param name="self"></param>
+    /// <returns></returns>
+    public static string ToMacPath(this string self)
+    {
+        return self.Replace("\\", "/");
+    }
+
+
+    /// <summary>
     /// 删除视频
     /// </summary>
     /// <param name="folder"></param>
-    public static void DeleteFileByType(DirectoryInfo folder,DeletType deletType)
+    public static void DeleteFileByType(DirectoryInfo folder, DeletType deletType)
     {
         if (folder.Exists)
         {
@@ -696,7 +731,7 @@ public static class DirectoryUtil
                         default:
                             break;
                     }
-                    
+
                 }
             }
         }
@@ -728,7 +763,6 @@ public static class DirectoryUtil
 #region Component拓展
 public static class ComponentUtil
 {
-    #region Methods
     public static T Create<T>() where T : Component
     {
         return Create<T>(typeof(T).Name);
@@ -761,7 +795,6 @@ public static class ComponentUtil
             }
         }
     }
-    #endregion
 }
 #endregion
 
@@ -852,7 +885,7 @@ public static class CoroutineUtil
             UnityEngine.Object.DontDestroyOnLoad(_surrogate);
         }
     }
-    
+
     /// <summary>
     /// 协程等待 Allow for a routine to be yielded within another Coroutine without calling StartCoroutine
     /// e.g. yield return RoutineUtil.Sub(DoSomething());
@@ -884,6 +917,14 @@ public static class CoroutineUtil
 #region 数学
 public static class MathHelpr
 {
+    /// <summary>
+    /// 判断x,y,z是否相等
+    /// </summary>
+    public static bool IsUniform(this Vector3 self)
+    {
+        return Mathf.Approximately(self.x, self.y) && Mathf.Approximately(self.x, self.z);
+    }
+
     /// <summary>求一条线上某一x值对应的y值</summary>
     public static float GetYByStartEndPointAndX(Vector2 startPoint, Vector2 endPoint, float x)
     {
@@ -1176,7 +1217,7 @@ public static class MathHelpr
     /// <param name="v2"></param>
     /// <param name="distance"></param>
     /// <returns></returns>
-    public static float Distance(Vector3 v1,Vector3 v2,float distance)
+    public static float Distance(Vector3 v1, Vector3 v2, float distance)
     {
         return (v1 - v2).sqrMagnitude - distance * distance;
     }
@@ -1688,7 +1729,7 @@ public sealed class LoadUtil
     /// <param name="texList"></param>
     /// <param name="path"></param>
     /// <returns></returns>
-    public static IEnumerator LoadWWWAllPicture(List<Texture2D> texList,string path)
+    public static IEnumerator LoadWWWAllPicture(List<Texture2D> texList, string path)
     {
         texList.Clear();
         Hashtable ht = new Hashtable();
@@ -1714,20 +1755,20 @@ public sealed class LoadUtil
 
     public static void GetAllFiles(DirectoryInfo dir, Hashtable ht)
     {
-        FileSystemInfo[] fileinfo = dir.GetFileSystemInfos(); 
-        foreach (FileSystemInfo i in fileinfo)  
-        {
-            if (i is DirectoryInfo)             
-            {
-                GetAllFiles((DirectoryInfo)i, ht);  
-            }
+        FileSystemInfo[] fileinfo = dir.GetFileSystemInfos();
+        foreach (FileSystemInfo i in fileinfo)
+        {
+            if (i is DirectoryInfo)
+            {
+                GetAllFiles((DirectoryInfo)i, ht);
+            }
             else
             {
-                string str = i.FullName;      
-                string path = Application.streamingAssetsPath;
+                string str = i.FullName;
+                string path = Application.streamingAssetsPath;
                 string strType = str.Substring(path.Length);
                 string suffix = strType.Substring(strType.Length - 3).ToLower();
-                if (suffix == "png"| suffix == "jpg")
+                if (suffix == "png" | suffix == "jpg")
                 {
                     if (ht.Contains(strType))
                         ht[strType] = strType;
@@ -1978,9 +2019,9 @@ public static class LinqUtil
     /// <param name="_ascending"></param>
     /// 对Vector3排序
     /// dicSort = from objDic in dic orderby objDic.Key.z ascending select objDic;
-    public static void DictionarySort<T1, T2>(IDictionary<T1, T2> dic,bool _ascending)
+    public static void DictionarySort<T1, T2>(IDictionary<T1, T2> dic, bool _ascending)
     {
-        IOrderedEnumerable<KeyValuePair<T1, T2>>dicSort;
+        IOrderedEnumerable<KeyValuePair<T1, T2>> dicSort;
         if (_ascending)
             dicSort = from objDic in dic orderby objDic.Key ascending select objDic;
         else
@@ -2021,7 +2062,7 @@ public static class LinqUtil
     /// <summary>
     /// 删除字典键值
     /// </summary>
-    public static void RemoveDicKeyValue<T1, T2>(IDictionary<T1, T2> dic, BoolCallbackFunc callBackFunc = null) 
+    public static void RemoveDicKeyValue<T1, T2>(IDictionary<T1, T2> dic, BoolCallbackFunc callBackFunc = null)
         where T2 : UnityEngine.Object
     {
         foreach (var item in dic.ToList())
@@ -2038,7 +2079,7 @@ public static class LinqUtil
     /// <summary>
     /// 字典通过值获得键
     /// </summary>
-    private static T1 GetKey<T1,T2>(this Dictionary<T1, T2> dic, T2 name)
+    private static T1 GetKey<T1, T2>(this Dictionary<T1, T2> dic, T2 name)
     {
         var keyvaluepair = dic.SingleOrDefault(k => k.Value.Equals(name));
         var key = keyvaluepair.Key;
@@ -2637,6 +2678,293 @@ public static class LinqUtil
         return array.ToList();
     }
 
+    /// <summary>
+    /// 返回满足条件的元素数量
+    /// </summary>
+    public static int Count<T>(this IList<T> self, Func<T, bool> predicate)
+    {
+        int count = 0;
+        for (int i = 0; i < self.Count; i++)
+        {
+            if (predicate(self[i]))
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static T Dequeue<T>(this IList<T> self)
+    {
+        var result = self[0];
+        self.RemoveAt(0);
+        return result;
+    }
+
+    public static IList<T> FindAll<T>(this IList<T> self, Predicate<T> match)
+    {
+        var result = new List<T>();
+        for (int i = 0; i < self.Count; i++)
+        {
+            if (match(self[i]))
+            {
+                result.Add(self[i]);
+            }
+        }
+        return result;
+    }
+
+    public static T Find<T>(this IList<T> self, Predicate<T> match)
+    {
+        for (int i = 0; i < self.Count; i++)
+        {
+            if (match(self[i]))
+            {
+                return self[i];
+            }
+        }
+        return default(T);
+    }
+
+    public static int FindIndex<T>(this IList<T> self, Predicate<T> match)
+    {
+        for (int i = 0; i < self.Count; i++)
+        {
+            if (match(self[i]))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static T FindLast<T>(this IList<T> self, Predicate<T> match)
+    {
+        for (int i = self.Count - 1; 0 <= i; i--)
+        {
+            if (match(self[i]))
+            {
+                return self[i];
+            }
+        }
+        return default(T);
+    }
+
+    public static int FindLastIndex<T>(this IList<T> self, Predicate<T> match)
+    {
+        for (int i = self.Count - 1; 0 <= i; i--)
+        {
+            if (match(self[i]))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// 只要有一个满足条件，就返回
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="self"></param>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    public static bool Any<T>(this IList<T> self, Func<T, bool> predicate)
+    {
+        for (int i = 0; i < self.Count; i++)
+        {
+            if (predicate(self[i]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 所有都满足条件，才返回
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="self"></param>
+    /// <param name="predicate"></param>
+    /// <returns></returns>
+    public static bool All<T>(this IList<T> self, Func<T, bool> predicate)
+    {
+        for (int i = 0; i < self.Count; i++)
+        {
+            if (!predicate(self[i]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static bool Contains<T>(this IList<T> self, T value)
+    {
+        for (int i = 0; i < self.Count; i++)
+        {
+            if (self[i].Equals(value))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static int Sum<T>(this IList<T> self, Func<T, int> selector)
+    {
+        int result = 0;
+
+        for (int i = 0; i < self.Count; i++)
+        {
+            result += selector(self[i]);
+        }
+        return result;
+    }
+
+    public static uint Sum<T>(this IList<T> self, Func<T, uint> selector)
+    {
+        uint result = 0;
+
+        for (int i = 0; i < self.Count; i++)
+        {
+            result += selector(self[i]);
+        }
+        return result;
+    }
+
+    public static int Max<T>(this IList<T> self, Func<T, int> selector)
+    {
+        int result = int.MinValue;
+
+        for (int i = 0; i < self.Count; i++)
+        {
+            var value = selector(self[i]);
+
+            if (result < value)
+            {
+                result = value;
+            }
+        }
+        return result;
+    }
+
+    public static uint Max<T>(this IList<T> self, Func<T, uint> selector)
+    {
+        uint result = uint.MinValue;
+
+        for (int i = 0; i < self.Count; i++)
+        {
+            var value = selector(self[i]);
+
+            if (result < value)
+            {
+                result = value;
+            }
+        }
+        return result;
+    }
+
+    public static int Min<T>(this IList<T> self, Func<T, int> selector)
+    {
+        int result = int.MaxValue;
+
+        for (int i = 0; i < self.Count; i++)
+        {
+            var value = selector(self[i]);
+
+            if (value < result)
+            {
+                result = value;
+            }
+        }
+        return result;
+    }
+
+    public static uint Min<T>(this IList<T> self, Func<T, uint> selector)
+    {
+        uint result = uint.MaxValue;
+
+        for (int i = 0; i < self.Count; i++)
+        {
+            var value = selector(self[i]);
+
+            if (value < result)
+            {
+                result = value;
+            }
+        }
+        return result;
+    }
+
+    public static T ElementAtOrDefault<T>(this IList<T> self, int index)
+    {
+        return 0 <= index && index < self.Count ? self[index] : default(T);
+    }
+
+    public static T ElementAtOrDefault<T>(this IList<T> self, int index, T defaultValue)
+    {
+        return 0 <= index && index < self.Count ? self[index] : defaultValue;
+    }
+
+    public static T FindMin<T>(this IList<T> self, Func<T, int> selector)
+    {
+        return self.Find(c => selector(c) == self.Min(selector));
+    }
+
+    public static T FindMin<T>(this IList<T> self, Func<T, uint> selector)
+    {
+        return self.Find(c => selector(c) == self.Min(selector));
+    }
+
+    public static T FindMax<T>(this IList<T> self, Func<T, int> selector)
+    {
+        return self.Find(c => selector(c) == self.Max(selector));
+    }
+
+    public static T FindMax<T>(this IList<T> self, Func<T, uint> selector)
+    {
+        return self.Find(c => selector(c) == self.Max(selector));
+    }
+
+    /// <summary>
+    /// 返回最接近的一个值
+    /// </summary>
+    /// <param name="self"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    public static int Nearest(this IList<int> self, int target)
+    {
+        var min = self.Min(c => Math.Abs(c - target));
+        return self.First(c => Math.Abs(c - target) == min);
+    }
+
+    /// <summary>
+    /// 返回最接近的一个值
+    /// </summary>
+    public static int Nearest<TSource>
+    (
+        this IList<TSource> self,
+        int target,
+        Func<TSource, int> selector
+    )
+    {
+        var min = self.Min(c => Math.Abs(selector(c) - target));
+        return selector(self.First(c => Math.Abs(selector(c) - target) == min));
+    }
+
+    public static TSource FindNearest<TSource>
+        (
+            this IList<TSource> self,
+            int target,
+            Func<TSource, int> selector
+        )
+    {
+        var min = self.Min(c => Math.Abs(selector(c) - target));
+        return self.First(c => Math.Abs(selector(c) - target) == min);
+    }
+
     public static IEnumerable<T> CustomWhere<T>(this List<T> list, Func<T, bool> predicate)
     {
         return list.Where(predicate).ToArray();
@@ -2816,7 +3144,7 @@ public static class LinqUtil
     /// <param name="data"></param>
     /// <param name="maxCount = 100"></param>
     /// <returns></returns>
-    public static Vector3 QueueAverage(ref Queue<Vector3> queue, Vector3 data,int maxCount)
+    public static Vector3 QueueAverage(ref Queue<Vector3> queue, Vector3 data, int maxCount)
     {
         queue.Enqueue(data);
         if (queue.Count > maxCount)
@@ -2836,7 +3164,7 @@ public static class LinqUtil
     /// <param name="data"></param>
     /// <param name="filterLength"></param>
     /// <returns></returns>
-    public static Vector3 LowPassAccelerometer(ref Queue<Vector3> queue, Vector3 data,int filterLength)
+    public static Vector3 LowPassAccelerometer(ref Queue<Vector3> queue, Vector3 data, int filterLength)
     {
         if (filterLength <= 0)
             return data;
@@ -2855,7 +3183,7 @@ public static class LinqUtil
     /// </summary>
     /// <returns></returns>
     //var xxxx = LinqUtil.OrderBy<GameObject,string,Vector3,string>(list.ToArray(), item => item.name,item=>item.transform.localScale);
-    public static IEnumerable<T> OrderBy<T,T1,T2,T3>(T[] Arrary,Func<T,T1>keySelector1, Func<T, T2> keySelector2 = null, Func<T, T3> keySelector3 = null) where T : UnityEngine.Object
+    public static IEnumerable<T> OrderBy<T, T1, T2, T3>(T[] Arrary, Func<T, T1> keySelector1, Func<T, T2> keySelector2 = null, Func<T, T3> keySelector3 = null) where T : UnityEngine.Object
     {
         return Arrary.OrderBy(keySelector1).ThenBy(keySelector2).ThenBy(keySelector3);
     }
@@ -2919,12 +3247,10 @@ public static class LinqUtil
         {
             Array.Copy(src, 0, dest, 0, index);
         }
-
         if (index < src.Length - 1)
         {
             Array.Copy(src, index + 1, dest, index, src.Length - index - 1);
         }
-
         return dest;
     }
 
@@ -2935,12 +3261,10 @@ public static class LinqUtil
         {
             Array.Copy(src, 0, dest, 0, index);
         }
-
         if (index < src.Length - 1)
         {
             Array.Copy(src, index + 1, dest, index, src.Length - index - 1);
         }
-
         src = dest;
     }
 
@@ -2954,13 +3278,9 @@ public static class LinqUtil
         else
         {
             T[] dest = new T[src.Length + 1];
-
             Array.Copy(src, dest, index + 1);
-
             dest[index + 1] = val;
-
             Array.Copy(src, index + 1, dest, index + 2, src.Length - (index + 1));
-
             src = dest;
         }
     }
@@ -3015,6 +3335,466 @@ public static class LinqUtil
         for (int i = 0; i < indices.Length; i++)
             indices[i] = i;
         return indices;
+    }
+
+    private static System.Random m_random = new System.Random();
+
+    /// <summary>
+    /// 创建一个包装指定数组的只读包装器
+    /// </summary>
+    public static ReadOnlyCollection<T> AsReadOnly<T>(this T[] array)
+    {
+        return Array.AsReadOnly(array);
+    }
+
+    /// <summary>
+    /// 根据元素的类型，将 Array 中的元素范围设置为 0（零）、false 或 null
+    /// </summary>
+    public static void Clear(this Array array)
+    {
+        Array.Clear(array, 0, array.Length);
+    }
+
+    /// <summary>
+    /// 根据元素的类型，将 Array 中的元素范围设置为 0（零）、false 或 null
+    /// </summary>
+    public static void Clear(this Array array, int index)
+    {
+        Array.Clear(array, index, array.Length);
+    }
+
+    /// <summary>
+    /// 根据元素的类型，将 Array 中的元素范围设置为 0（零）、false 或 null
+    /// </summary>
+    public static void Clear(this Array array, int index, int length)
+    {
+        Array.Clear(array, index, length);
+    }
+
+    /// <summary>
+    /// 确定指定数组是否包含与指定谓词定义的条件匹配的元素
+    /// </summary>
+    public static bool Exists<T>(this T[] array, Predicate<T> match)
+    {
+        return Array.Exists(array, match);
+    }
+
+    /// <summary>
+    /// 查找与指定谓词定义的条件匹配的元素，并返回整个 Array 中索引号最小的元素
+    /// str = array.Find( c => c == "ピカチュウ" );
+    /// </summary>
+    public static T Find<T>(this T[] array, Predicate<T> match)
+    {
+        return Array.Find(array, match);
+    }
+
+    /// <summary>
+    /// 获取与指定谓词定义的条件匹配的所有元素
+    /// </summary>
+    public static T[] FindAll<T>(this T[] array, Predicate<T> match)
+    {
+        return Array.FindAll(array, match);
+    }
+
+    /// <summary>
+    /// 在整个 Array 中搜索与指定谓词定义的条件匹配的元素，并返回具有最低索引号的元素的从 0 开始的索引
+    /// </summary>
+    public static int FindIndex<T>(this T[] array, Predicate<T> match)
+    {
+        return Array.FindIndex(array, match);
+    }
+
+    /// <summary>
+    /// 在整个 Array 中搜索与指定谓词定义的条件匹配的元素，并返回具有最低索引号的元素的从 0 开始的索引
+    /// </summary>
+    public static int FindIndex<T>(this T[] array, int startIndex, Predicate<T> match)
+    {
+        return Array.FindIndex(array, startIndex, match);
+    }
+
+    /// <summary>
+    /// 在整个 Array 中搜索与指定谓词定义的条件匹配的元素，并返回具有最低索引号的元素的从 0 开始的索引
+    /// </summary>
+    public static int FindIndex<T>(this T[] array, int startIndex, int count, Predicate<T> match)
+    {
+        return Array.FindIndex(array, startIndex, count, match);
+    }
+
+    /// <summary>
+    /// 在整个 Array 中搜索与指定谓词定义的条件匹配的元素，并返回索引号最高的元素
+    /// </summary>
+    public static T FindLast<T>(this T[] array, Predicate<T> match)
+    {
+        return Array.FindLast(array, match);
+    }
+
+    /// <summary>
+    /// 在整个 Array 中搜索与指定谓词定义的条件匹配的元素，并返回具有最高索引号的元素的从 0 开始的索引
+    /// </summary>
+    public static int FindLastIndex<T>(this T[] array, Predicate<T> match)
+    {
+        return Array.FindLastIndex(array, match);
+    }
+
+    /// <summary>
+    /// 搜索与指定谓词定义的条件匹配的元素，从 Array 的第一个元素开始到指定的索引位置，并返回具有最高索引号的元素的从 0 开始的索引
+    /// </summary>
+    public static int FindLastIndex<T>(this T[] array, int startIndex, Predicate<T> match)
+    {
+        return Array.FindLastIndex(array, startIndex, match);
+    }
+
+    /// <summary>
+    /// 从 Array 的指定索引位置到指定数量的元素搜索与指定谓词定义的条件匹配的元素，并返回具有最高索引号的元素的从 0 开始的索引
+    /// </summary>
+    public static int FindLastIndex<T>(this T[] array, int startIndex, int count, Predicate<T> match)
+    {
+        return Array.FindLastIndex(array, startIndex, count, match);
+    }
+
+    /// <summary>
+    /// 对指定数组中的每个元素执行指定的处理
+    /// </summary>
+    public static void ForEach<T>(this T[] array, Action<T> action)
+    {
+        for (int i = 0; i < array.Length; i++)
+        {
+            action(array[i]);
+        }
+    }
+
+    /// <summary>
+    /// 对指定数组中的每个元素执行指定的处理
+    /// </summary>
+    public static void ForEach<T>(this T[] array, Action<T, int> action)
+    {
+        for (int i = 0; i < array.Length; i++)
+        {
+            action(array[i], i);
+        }
+    }
+
+    /// <summary>
+    /// 为整个 Array 查找指定对象并返回具有最低索引号的元素的索引
+    /// </summary>
+    public static int IndexOf<T>(this T[] array, T value)
+    {
+        return Array.IndexOf(array, value);
+    }
+
+    /// <summary>
+    /// 查找指定的对象并返回在整个一维数组中首次找到该对象的位置的索引号
+    /// </summary>
+    public static int IndexOf(this Array array, System.Object value)
+    {
+        return Array.IndexOf(array, value);
+    }
+
+    /// <summary>
+    /// 从Array的指定索引位置到最后一个元素搜索指定对象，返回索引号最小的元素的索引号
+    /// </summary>
+    public static int IndexOf<T>(this T[] array, T value, int startIndex)
+    {
+        return Array.IndexOf(array, value, startIndex);
+    }
+
+    /// <summary>
+    /// 从一维数组的指定索引到最后一个元素搜索指定对象，并返回索引号最小的元素的索引号
+    /// </summary>
+    public static int IndexOf(this Array array, System.Object value, int startIndex)
+    {
+        return Array.IndexOf(array, value, startIndex);
+    }
+
+    /// <summary>
+    /// 从 Array 的指定索引中搜索指定对象中指定数量的元素，并返回索引号最小的元素的索引号
+    /// </summary>
+    public static int IndexOf<T>(this T[] array, T value, int startIndex, int count)
+    {
+        return Array.IndexOf(array, value, startIndex, count);
+    }
+
+    /// <summary>
+    /// 在指定元素个数的一维数组元素范围内，从指定索引位置开始搜索指定对象，返回索引号最小的元素的索引号
+    /// </summary>
+    public static int IndexOf(this Array array, System.Object value, int startIndex, int count)
+    {
+        return Array.IndexOf(array, value, startIndex, count);
+    }
+
+    /// <summary>
+    /// 在整个 Array 中搜索指定对象并返回具有最高索引号的元素的索引
+    /// </summary>
+    public static int LastIndexOf<T>(this T[] array, T value)
+    {
+        return Array.LastIndexOf(array, value);
+    }
+
+    /// <summary>
+    /// 查找指定的对象并返回整个一维数组中最后一次找到该对象的位置的索引号
+    /// </summary>
+    public static int LastIndexOf(this Array array, System.Object value)
+    {
+        return Array.LastIndexOf(array, value);
+    }
+
+    /// <summary>
+    /// 从 Array 的第一个元素到指定索引位置搜索指定对象，并返回索引号最高的元素的索引号
+    /// </summary>
+    public static int LastIndexOf<T>(this T[] array, T value, int startIndex)
+    {
+        return Array.LastIndexOf(array, value, startIndex);
+    }
+
+    /// <summary>
+    /// 从一维数组的第一个元素到指定索引搜索指定对象，并返回索引号最高的元素的索引号
+    /// </summary>
+    public static int LastIndexOf(this Array array, System.Object value, int startIndex)
+    {
+        return Array.LastIndexOf(array, value, startIndex);
+    }
+
+    /// <summary>
+    /// 从Array的指定索引位置搜索指定对象，以指定个数的元素为范围，返回索引号最大的元素的索引号
+    /// </summary>
+    public static int LastIndexOf<T>(this T[] array, T value, int startIndex, int count)
+    {
+        return Array.LastIndexOf(array, value, startIndex, count);
+    }
+
+    /// <summary>
+    /// 从一维数组的指定索引位置搜索指定对象，以指定个数的元素为范围，返回索引号最大的元素的索引号
+    /// </summary>
+    public static int LastIndexOf(this Array array, System.Object value, int startIndex, int count)
+    {
+        return Array.LastIndexOf(array, value, startIndex, count);
+    }
+
+    /// <summary>
+    /// 反转一维数组中的元素序列
+    /// </summary>
+    public static T[] Reverse<T>(this T[] array)
+    {
+        Array.Reverse(array);
+        return array;
+    }
+
+    /// <summary>
+    /// 反转一维数组中元素范围的顺序
+    /// </summary>
+    public static T[] Reverse<T>(this T[] array, int index, int length)
+    {
+        Array.Reverse(array, index, length);
+        return array;
+    }
+
+    /// <summary>
+    /// 检查数组中的所有元素是否与指定谓词定义的条件匹配
+    /// </summary>
+    public static bool TrueForAll<T>(this T[] array, Predicate<T> match)
+    {
+        return Array.TrueForAll(array, match);
+    }
+
+    /// <summary>
+    /// 返回序列的第一个元素
+    /// </summary>
+    public static T First<T>(this T[] array)
+    {
+        return array[0];
+    }
+
+    /// <summary>
+    /// 返回序列的最后一个元素
+    /// </summary>
+    public static T Last<T>(this T[] array)
+    {
+        return array[array.Length - 1];
+    }
+
+    /// <summary>
+    /// 随机排序
+    /// </summary>
+    public static T[] Shuffle<T>(this T[] array)
+    {
+        int n = array.Length;
+        while (1 < n)
+        {
+            n--;
+            int k = m_random.Next(n + 1);
+            var tmp = array[k];
+            array[k] = array[n];
+            array[n] = tmp;
+        }
+        return array;
+    }
+
+    /// <summary>
+    /// 随机排序
+    /// </summary>
+    public static List<T> Shuffle<T>(this List<T> self)
+    {
+        int n = self.Count;
+        while (1 < n)
+        {
+            n--;
+            int k = m_random.Next(n + 1);
+            var tmp = self[k];
+            self[k] = self[n];
+            self[n] = tmp;
+        }
+        return self;
+    }
+
+    /// <summary>
+    /// 在整个 Array 中搜索与指定谓词定义的条件匹配的元素，并返回具有最低索引号的元素的从 0 开始的索引
+    /// </summary>
+    public static void FindIndex<T>(this T[] array, Predicate<T> match, Action<int> act)
+    {
+        var index = Array.FindIndex(array, match);
+        if (index == -1)
+        {
+            return;
+        }
+        act(index);
+    }
+
+    /// <summary>
+    /// 对整个 Array 的元素进行排序
+    /// </summary>
+    public static void Sort<T>(this T[] array)
+    {
+        Array.Sort(array);
+    }
+
+    /// <summary>
+    /// 使用指定的比较 <T> 对 Array 中的元素进行排序
+    /// </summary>
+    public static void Sort<T>(this T[] array, Comparison<T> comparison)
+    {
+        Array.Sort(array, comparison);
+    }
+
+    /// <summary>
+    /// 使用指定的 Func <TSource, TResult> 对 Array 中的元素进行排序
+    /// </summary>
+    public static void Sort<TSource, TResult>(this TSource[] array, Func<TSource, TResult> selector) where TResult : IComparable
+    {
+        Array.Sort(array, (x, y) => selector(x).CompareTo(selector(y)));
+    }
+
+    /// <summary>
+    /// 使用指定的 Func <TSource, TResult> 以相反的顺序对 Array 中的元素进行排序
+    /// </summary>
+    public static void SortDescending<TSource, TResult>(this TSource[] array, Func<TSource, TResult> selector) where TResult : IComparable
+    {
+        Array.Sort(array, (x, y) => selector(y).CompareTo(selector(x)));
+    }
+
+    /// <summary>
+    /// 使用多个键对 Array 中的元素进行排序
+    /// </summary>\
+    public static void Sort<TSource, TResult>(this TSource[] array, Func<TSource, TResult> selector1, Func<TSource, TResult> selector2) where TResult : IComparable
+    {
+        Array.Sort(array, (x, y) =>
+        {
+            var result = selector1(x).CompareTo(selector1(y));
+            return result != 0 ? result : selector2(x).CompareTo(selector2(y));
+        });
+    }
+
+    /// <summary>
+    /// 获取与指定键关联的值, 如果键不存在则返回默认值
+    /// </summary>
+    public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> self, TKey key, TValue defaultValue = default(TValue))
+    {
+        TValue value;
+        return self.TryGetValue(key, out value) ? value : defaultValue;
+    }
+
+    /// <summary>
+    /// 转换为哈希表
+    /// </summary>
+    public static Hashtable ToHashtable<TKey, TValue>(this Dictionary<TKey, TValue> self)
+    {
+        var result = new Hashtable();
+        foreach (var n in self)
+        {
+            result[n.Key] = n.Value;
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 随机返回一个值
+    /// </summary>
+    public static TValue ElementAtRandom<TKey, TValue>(this Dictionary<TKey, TValue> self)
+    {
+        return self.ElementAt(UnityEngine.Random.Range(0, self.Count)).Value;
+    }
+
+    /// <summary>
+    /// 清空字典
+    /// </summary>
+    public static void ClearIfNotNull<TKey, TValue>(this Dictionary<TKey, TValue> self)
+    {
+        if (self == null) return;
+        self.Clear();
+    }
+
+    /// <summary>
+    /// 返回下一个枚举，如果枚举有a,b,c，当前为a，那么下一个就是b，当前为最后一个c，就返回第一个a
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="self"></param>
+    /// <returns></returns>
+    public static T NextLoop<T>(this T self)
+    {
+        var intValue = Convert.ToInt32(self);
+        var nextValue = (intValue + 1) % EnumUtils.GetLength<T>();
+        var enumValue = EnumUtils.ToObject<T>(nextValue);
+
+        return enumValue;
+    }
+
+    /// <summary>
+    /// 是否为有效值
+    /// </summary>
+    public static bool IsValidated(this float self)
+    {
+        return !float.IsInfinity(self) && !float.IsNaN(self);
+    }
+
+    /// <summary>
+    /// 检查值是否无效并返回值
+    /// </summary>
+    public static float GetValueOrDefault(this float self, float defaultValue = 0)
+    {
+        if (float.IsInfinity(self) || float.IsNaN(self))
+        {
+            return defaultValue;
+        }
+        return self;
+    }
+
+    /// <summary>
+    /// private void Test(int value) {if ( value.ContainsAny( 5, 10, 15 ) ) { }}
+    /// </summary>
+    public static bool ContainsAny<T>(this T self, IEnumerable<T> values)
+    {
+        return self.ContainsAny(values.ToArray());
+    }
+
+    public static bool ContainsAny<T>(this T self, params T[] values)
+    {
+        foreach (var n in values)
+        {
+            if (self.Equals(n))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     #region 排序算法
@@ -3244,24 +4024,6 @@ public static class LinqUtil
     #endregion
 
     /// <summary>
-    /// 泛型为所有对象组提供一个扩展方法，遍历该对象组并执行一个委托方法
-    /// </summary>
-    /// <typeparam name="T">对象类别,必须是实现了IComparable接口的类别</typeparam>
-    /// <param name="n">被遍历的对象组</param>
-    /// <param name="action">执行委托方法</param>
-    public static void ForEach<T>(this T[] n, Action<T> action) where T : IComparable<T>
-    {
-        bool flag = n.Length != 0;
-        if (flag)
-        {
-            for (int i = 0; i < n.Length; i++)
-            {
-                action(n[i]);
-            }
-        }
-    }
-
-    /// <summary>
     /// 获取调和级数到达目标值的元素数量
     /// </summary>
     /// <param name="Denominator">调和级数基础分母值（第一项的分母值）</param>
@@ -3377,6 +4139,112 @@ public class ListComparer<T> : IEqualityComparer<T>
         return obj.ToString().GetHashCode();
     }
 }
+
+#region 枚举
+/// <summary>
+/// 管理枚举通用函数的类
+/// </summary>
+public static class EnumUtils
+{
+    private static readonly System.Random m_random = new System.Random();  // 乱数
+    /// <summary>
+    /// 随机返回指定枚举的值
+    /// </summary>
+    public static T RandomAt<T>(params T[] collection)
+    {
+        return collection
+            .OrderBy(c => m_random.Next())
+            .FirstOrDefault()
+        ;
+    }
+
+    /// <summary>
+    /// 随机返回指定枚举的值
+    /// </summary>
+    public static T Random<T>()
+    {
+        return Enum.GetValues(typeof(T))
+            .Cast<T>()
+            .OrderBy(c => m_random.Next())
+            .FirstOrDefault()
+        ;
+    }
+
+    /// <summary>
+    /// 返回指定枚举中值的个数
+    /// </summary>
+    public static int GetLength<T>()
+    {
+        return Enum.GetValues(typeof(T)).Length;
+    }
+
+    /// <summary>
+    /// 将字符串格式的一个或多个枚举常量的名称或数量转换为等效的枚举对象
+    /// </summary>
+    public static T Parse<T>(string value)
+    {
+        return (T)Enum.Parse(typeof(T), value);
+    }
+
+    /// <summary>
+    /// 将字符串格式的一个或多个枚举常量的名称或数量转换为等效的枚举对象
+    /// </summary>
+    public static T Parse<T>(string value, bool ignoreCase)
+    {
+        return (T)Enum.Parse(typeof(T), value, ignoreCase);
+    }
+
+    /// <summary>
+    /// 将指定的字符串转换为枚举并返回是否成功
+    /// </summary>
+    public static bool TryParse<T>(string value, out T result)
+    {
+        return TryParse(value, true, out result);
+    }
+
+    /// <summary>
+    /// 将指定的字符串转换为枚举并返回是否成功
+    /// </summary>
+    public static bool TryParse<T>(string value, bool ignoreCase, out T result)
+    {
+        try
+        {
+            result = (T)Enum.Parse(typeof(T), value, ignoreCase);
+            return true;
+        }
+        catch
+        {
+            result = default(T);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 返回是否可以将指定的字符串转换为枚举
+    /// </summary>
+    public static bool IsEnum<T>(string value)
+    {
+        T result;
+        return TryParse<T>(value, out result);
+    }
+
+    /// <summary>
+    /// 获取指定枚举中包含的常量值数组
+    /// </summary>
+    public static T[] GetValues<T>()
+    {
+        return Enum.GetValues(typeof(T)) as T[];
+    }
+
+    /// <summary>
+    /// 将指定的整数值转换为枚举成员并返回它
+    /// </summary>
+    public static T ToObject<T>(int value)
+    {
+        return (T)Enum.ToObject(typeof(T), value);
+    }
+}
+#endregion
 
 #endregion
 
@@ -4662,7 +5530,7 @@ public static class TextureUtil
     /// <param name="path"></param>
     /// <param name="isJpg"></param>
     /// <returns></returns>
-    public static System.Drawing.Bitmap Tex2DToBitmap(Texture2D texture2D,string path,bool isJpg = true)
+    public static System.Drawing.Bitmap Tex2DToBitmap(Texture2D texture2D, string path, bool isJpg = true)
     {
         File.WriteAllBytes(path, isJpg ? texture2D.EncodeToJPG() : texture2D.EncodeToPNG());
         System.Drawing.Bitmap newImg = new System.Drawing.Bitmap(System.Drawing.Image.FromFile(path));
@@ -5017,6 +5885,97 @@ public static class ColorUtil
         return new Color32(r, g, b, a);
     }
 
+    /// <summary>
+    /// <para>将颜色转换为十六进制字符串</para>
+    /// <para>Color.red.EncodeColor() → FF0000</para>
+    /// </summary>
+    public static string EncodeColor(this Color self)
+    {
+        int i = 0xFFFFFF & (self.ToInt() >> 8);
+        return i.DecimalToHex();
+    }
+
+    /// <summary>
+    /// <para>将十进制数转换为十六进制字符串</para>
+    /// <para>1234.DecimalToHex() // 0004D2</para>
+    /// </summary>
+    public static string DecimalToHex(this int self)
+    {
+        self &= 0xFFFFFF;
+        return self.ToString("X6");
+    }
+
+    /// <summary>
+    /// 将颜色转换为十六进制数
+    /// </summary>
+    public static int ToInt(this Color self)
+    {
+        int result = 0;
+        result |= Mathf.RoundToInt(self.r * 255f) << 24;
+        result |= Mathf.RoundToInt(self.g * 255f) << 16;
+        result |= Mathf.RoundToInt(self.b * 255f) << 8;
+        result |= Mathf.RoundToInt(self.a * 255f);
+        return result;
+    }
+
+    /// <summary>
+    /// <para>将指定的十六进制数转换为颜色</para>
+    /// <para>从最高有效位转换为 ARGB</para>
+    /// <para>ColorUtils.ToARGB( 0xFFFF8000 ) // RGBA(1.000, 0.502, 0.000, 1.000)</para>
+    /// </summary>
+    public static Color ToARGB(uint val)
+    {
+        var inv = 1f / 255f;
+        var c = Color.black;
+        c.a = inv * ((val >> 24) & 0xFF);
+        c.r = inv * ((val >> 16) & 0xFF);
+        c.g = inv * ((val >> 8) & 0xFF);
+        c.b = inv * (val & 0xFF);
+        return c;
+    }
+
+    /// <summary>
+    /// <para>将指定的十六进制数转换为颜色</para>
+    /// <para>从最高有效位转换为 RGBA</para>
+    /// <para>ColorUtils.ToARGB( 0xFF8000FF ) // RGBA(1.000, 0.502, 0.000, 1.000)</para>
+    /// </summary>
+    public static Color ToRGBA(uint val)
+    {
+        var inv = 1f / 255f;
+        var c = Color.black;
+        c.r = inv * ((val >> 24) & 0xFF);
+        c.g = inv * ((val >> 16) & 0xFF);
+        c.b = inv * ((val >> 8) & 0xFF);
+        c.a = inv * (val & 0xFF);
+        return c;
+    }
+
+    /// <summary>
+    /// <para>将指定的十六进制数转换为颜色</para>
+    /// <para>从最高有效位转换为 RGB</para>
+    /// <para>ColorUtils.ToRGB( 0xFF8000 ) // RGBA(1.000, 0.502, 0.000, 1.000)</para>
+    /// </summary>
+    public static Color ToRGB(uint val)
+    {
+        var inv = 1f / 255f;
+        var c = Color.black;
+        c.r = inv * ((val >> 16) & 0xFF);
+        c.g = inv * ((val >> 8) & 0xFF);
+        c.b = inv * (val & 0xFF);
+        c.a = 1f;
+        return c;
+    }
+
+    /// <summary>
+    /// <para>将指定的十六进制数转换为颜色</para>
+    /// <para>从最高有效位转换为 RGB</para>
+    /// <para>ColorUtils.ToRGB( 0xFF8000 ) // RGBA(1.000, 0.502, 0.000, 1.000)</para>
+    /// </summary>
+    public static Color ToRGB(int val)
+    {
+        return ToRGB((uint)val);
+    }
+
     public struct ColorHSB
     {
         public float h;
@@ -5226,6 +6185,114 @@ public static class ColorUtil
 #region 字符串拓展
 public static class StringUtil
 {
+    /// <summary>
+    /// 单词首字母变大写
+    /// </summary>
+    public static string ToTitleCase(this string self)
+    {
+        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(self);
+    }
+
+    /// <summary>
+    /// <para>分割字符串首字母变大写</para>
+    /// <para>例) quoted_printable_encode → QuotedPrintableEncode</para>
+    /// </summary>
+    public static string SnakeToUpperCamel(this string self)
+    {
+        if (string.IsNullOrEmpty(self)) return self;
+
+        return self
+            .Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => char.ToUpperInvariant(s[0]) + s.Substring(1, s.Length - 1))
+            .Aggregate(string.Empty, (s1, s2) => s1 + s2)
+        ;
+    }
+
+    /// <summary>
+    /// <para>分割字符串第一个字母小写,其他首字母大写</para>
+    /// <para>例) quoted_printable_encode → quotedPrintableEncode</para>
+    /// </summary>
+    public static string SnakeToLowerCamel(this string self)
+    {
+        if (string.IsNullOrEmpty(self)) return self;
+        return self.SnakeToUpperCamel().Insert(0, char.ToLowerInvariant(self[0]).ToString()).Remove(1, 1);
+    }
+
+    /// <summary>
+    /// 获取字符串字节总数
+    /// </summary>
+    /// <param name="self"></param>
+    /// <returns></returns>
+    public static int GetByteCount(this string self)
+    {
+        int count = 0;
+        for (int i = 0; i < self.Length; i++)
+        {
+            if (IsChar2Byte(self[i]))
+            {
+                count++;
+            }
+            count++;
+        }
+        return count;
+    }
+
+    public static bool IsChar2Byte(char c)
+    {
+        // Shift_JIS: 0x0 ～ 0x80, 0xa0 , 0xa1 ～ 0xdf , 0xfd ～ 0xff
+        // Unicode : 0x0 ～ 0x80, 0xf8f0, 0xff61 ～ 0xff9f, 0xf8f1 ～ 0xf8f3
+        return !((c >= 0x0 && c < 0x81) || (c == 0xf8f0) || (c >= 0xff61 && c < 0xffa0) || (c >= 0xf8f1 && c < 0xf8f4));
+    }
+
+    /// <summary>
+    /// <para>var str = "\n王国兵士\n魔法使い\n";</para>
+    /// <para>str = str.Trim( "\n" ); // 王国兵士\n魔法使い</para>
+    /// </summary>
+    public static string Trim(this string self, params string[] trimChars)
+    {
+        return self.Trim(trimChars.Select(c => Convert.ToChar(c)).ToArray());
+    }
+
+    /// <summary>
+    /// <para>var str = "\n王国兵士\n魔法使い\n";</para>
+    /// <para>str = str.TrimEnd( "\n" ); // \n王国兵士\n魔法使い</para>
+    /// </summary>
+    public static string TrimEnd(this string self, params string[] trimChars)
+    {
+        return self.TrimEnd(trimChars.Select(c => Convert.ToChar(c)).ToArray());
+    }
+
+    /// <summary>
+    /// <para>var str = "\n王国兵士\n魔法使い\n";</para>
+    /// <para>str = str.TrimStart( "\n" ); // 王国兵士\n魔法使い\n</para>
+    /// </summary>
+    public static string TrimStart(this string self, params string[] trimChars)
+    {
+        return self.TrimStart(trimChars.Select(c => Convert.ToChar(c)).ToArray());
+    }
+
+    /// <summary>
+    /// <para>包含params中的任意一个</para>
+    /// <para>var str = "ピカチュウカイリュー";</para>
+    /// <para>Debug.Log( str.IncludeAny( "ピカチュウ", "カイリュー" ) ); // True</para>
+    /// <para>Debug.Log( str.IncludeAny( "カイリュー", "ヤドラン" ) ); // True</para>
+    /// <para>Debug.Log( str.IncludeAny( "ヤドラン", "ピジョン" ) ); // False</para>
+    /// </summary>
+    public static bool IncludeAny(this string self, params string[] list)
+    {
+        return list.Any(c => self.Contains(c));
+    }
+
+    /// <summary>
+    /// <para>忽略全角半角比较字符串</para>
+    /// <para>http://d.hatena.ne.jp/tbpg/20130701/1372684055</para>
+    /// </summary>
+    public static bool CompareIgnoreWidthAndCase(this string self, string value)
+    {
+        var compareInfo = CultureInfo.CurrentCulture.CompareInfo;
+        return 0 <= compareInfo.IndexOf(self, value, CompareOptions.IgnoreWidth | CompareOptions.IgnoreCase);
+    }
+
     public static string ToUft8(string unicodeString)
     {
         UTF8Encoding utf8 = new UTF8Encoding();
@@ -5391,7 +6458,7 @@ public static class StringUtil
     }
 
     /// <summary>
-    /// 计算子串在字符串中出现的次数
+    /// 计算子字符串在字符串中出现的次数
     /// <para>
     /// 该函数不计数重叠的子串
     /// </para>
@@ -5415,6 +6482,97 @@ public static class StringUtil
             length = nullable.HasValue ? new int?(nullable.GetValueOrDefault() - num3) : new int?();
         }
         return num1;
+    }
+
+    /// <summary>
+    /// 计算子字符串在字符串中出现的次数
+    /// </summary>
+    public static int CountString(this string self, string str)
+    {
+        return (self.Length - self.Replace(str, "").Length) / str.Length;
+    }
+
+    /// <summary>
+    /// <para>删除指定字符串多少次，从前往后删</para>
+    /// <para>"あ\nい\nう\nえ\nお".Reduce( "\n", 2 )</para>
+    /// <para>↓</para>
+    /// <para>"あいう\nえ\nお"</para>
+    /// </summary>
+    public static string Reduce(this string self, string str, int remainCount)
+    {
+        while (remainCount < self.CountString(str))
+        {
+            self = self.Remove(self.IndexOf(str), str.Length);
+        }
+        return self;
+    }
+
+    /// <summary>
+    /// <para>删除指定字符串多少次，从后往前删</para>
+    /// <para>"あ\nい\nう\nえ\nお".LastReduce( "\n", 2 )</para>
+    /// <para>↓</para>
+    /// <para>"あ\nい\nうえお"</para>
+    /// </summary>
+    public static string LastReduce(this string self, string str, int remainCount)
+    {
+        while (remainCount < self.CountString(str))
+        {
+            self = self.Remove(self.LastIndexOf(str), str.Length);
+        }
+        return self;
+    }
+
+    /// <summary>
+    /// 获取转义字符
+    /// string unicodes = "e72a"; Unescape(string.Format("\\u{0}", unicodes) → \ue72a
+    /// </summary>
+    public static string Unescape(this string self)
+    {
+        return Regex.Unescape(self);
+    }
+
+    /// <summary>
+    /// 去转义 文字 (\、*、+、?、|、{、[、(、)、^、$、.、#、および空白)
+    /// </summary>
+    public static string Escape(this string self)
+    {
+        return Regex.Escape(self);
+    }
+
+    /// <summary>
+    /// 按count分割指定字符串 12345678901 → 12345 67890 1
+    /// </summary>
+    public static string[] SubstringAtCount(this string self, int count)
+    {
+        var result = new List<string>();
+        var length = (int)Math.Ceiling((double)self.Length / count);
+
+        for (int i = 0; i < length; i++)
+        {
+            int start = count * i;
+            if (self.Length <= start)
+            {
+                break;
+            }
+            if (self.Length < start + count)
+            {
+                result.Add(self.Substring(start));
+            }
+            else
+            {
+                result.Add(self.Substring(start, count));
+            }
+        }
+        return result.ToArray();
+    }
+
+    /// <summary>
+    /// <para从指定字符串位置移除指定字符串</para>
+    /// <para>1234567890123456  value：12345  result：12345678906</para>
+    /// </summary>
+    public static string RemoveAtLast(this string self, string value)
+    {
+        return self.Remove(self.LastIndexOf(value), value.Length);
     }
 
     /// <summary>
@@ -5501,7 +6659,7 @@ public static class StringUtil
     /// <summary>
     /// 在规定字符串中替换匹配项
     /// </summary>
-    public static string Replace(string[] matches, string replace,string str)
+    public static string Replace(string[] matches, string replace, string str)
     {
         Guard.Requires<ArgumentNullException>(matches != null);
         Guard.Requires<ArgumentNullException>(replace != null);
@@ -5515,7 +6673,7 @@ public static class StringUtil
     /// 替换规定字符串中第一次遇到的匹配项
     /// 该函数对大小写敏感
     /// </summary>
-    public static string ReplaceFirst(this string str,string match, string replace)
+    public static string ReplaceFirst(this string str, string match, string replace)
     {
         Guard.Requires<ArgumentNullException>(match != null);
         Guard.Requires<ArgumentNullException>(replace != null);
@@ -5530,7 +6688,7 @@ public static class StringUtil
     /// 替换规定字符串中从后往前第一次遇到的匹配项
     /// 该函数对大小写敏感
     /// </summary>
-    public static string ReplaceLast(this string str,string match, string replace)
+    public static string ReplaceLast(this string str, string match, string replace)
     {
         Guard.Requires<ArgumentNullException>(match != null);
         Guard.Requires<ArgumentNullException>(replace != null);
@@ -5988,6 +7146,26 @@ public static class StringUtil
         result = 0.0;
         return result;
     }
+
+    /// <summary>
+    /// <para>数字前添加0</para>
+    /// <para>123.ZeroFill( 4 ) → 01234</para>
+    /// <para>123.ZeroFill( 8 ) → 000001234</para>
+    /// </summary>
+    public static string ZeroFill(this int self, int numberOfDigits)
+    {
+        return self.ToString("D" + numberOfDigits.ToString());
+    }
+
+    /// <summary>
+    /// <para>小数点后添加0</para>
+    /// <para>123.FixedPoint(2) → 123.00</para>
+    /// <para>123.FixedPoint(4) → 123.0000</para>
+    /// </summary>
+    public static string FixedPoint(this int self, int numberOfDigits)
+    {
+        return self.ToString("F" + numberOfDigits.ToString());
+    }
     #endregion
 }
 #endregion
@@ -6002,7 +7180,7 @@ public enum Leap_Common_Year
     Common_Year = 28
 }
 
-public sealed class TimeUtil
+public static class TimeUtil
 {
     /// <summary>获取润平年</summary>
     public static Leap_Common_Year GetLerpCommonYaer()
@@ -6289,6 +7467,83 @@ public sealed class TimeUtil
         DateTime d2 = ConvertLongToDateTime(l2);
         return (int)(d2 - d).TotalDays;
     }
+
+    /// <summary>
+    /// UnixTime 基準時刻
+    /// </summary>
+    public static readonly DateTime UNIX_EPOCH = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    /// <summary>
+    /// yyyy/MM/dd HH:mm:ss
+    /// </summary>
+    public static string ToPattern(this DateTime self)
+    {
+        return self.ToString("yyyy/MM/dd HH:mm:ss");
+    }
+
+    /// <summary>
+    /// yyyy/MM/dd
+    /// </summary>
+    public static string ToShortDatePattern(this DateTime self)
+    {
+        return self.ToString("yyyy/MM/dd");
+    }
+
+    /// <summary>
+    /// yyyy年M月d日
+    /// </summary>
+    public static string ToLongDatePattern(this DateTime self)
+    {
+        return self.ToString("yyyy年M月d日");
+    }
+
+    /// <summary>
+    /// yyyy年M月d日 HH:mm:ss
+    /// </summary>
+    public static string ToFullDateTimePattern(this DateTime self)
+    {
+        return self.ToString("yyyy年M月d日 HH:mm:ss");
+    }
+
+    /// <summary>
+    /// MM/dd HH:mm
+    /// </summary>
+    public static string ToMiddleDateTimePattern(this DateTime self)
+    {
+        return self.ToString("MM/dd HH:mm");
+    }
+
+    /// <summary>
+    /// HH:mm
+    /// </summary>
+    public static string ToShortTimePattern(this DateTime self)
+    {
+        return self.ToString("HH:mm");
+    }
+
+    /// <summary>
+    /// HH:mm:ss
+    /// </summary>
+    public static string ToLongTimePattern(this DateTime self)
+    {
+        return self.ToString("HH:mm:ss");
+    }
+
+    /// <summary>
+    /// 转换为 UnixTime 并返回
+    /// </summary>
+    public static uint ToUnixTime(this DateTime self)
+    {
+        return (uint)self.Subtract(UNIX_EPOCH).TotalSeconds;
+    }
+
+    /// <summary>
+    /// 从 UnixTime 生成日期时间
+    /// </summary>
+    public static DateTime FromUnixTime(this DateTime self, long unixTime)
+    {
+        return UNIX_EPOCH.AddSeconds(unixTime).ToLocalTime();
+    }
 }
 #endregion
 
@@ -6335,6 +7590,24 @@ public static class GameObjectExtension
         return selfObj;
     }
 
+    public static void SafeSetParent(this Component self, Component parent)
+    {
+        SafeSetParent(self, parent.gameObject);
+    }
+
+    public static void SafeSetParent(this Component self, GameObject parent)
+    {
+        var t = self.transform;
+        var localPosition = t.localPosition;
+        var localRotation = t.localRotation;
+        var localScale = t.localScale;
+        t.parent = parent.transform;
+        t.localPosition = localPosition;
+        t.localRotation = localRotation;
+        t.localScale = localScale;
+        self.gameObject.layer = parent.layer;
+    }
+
     public static bool CheckLayerAndTag(GameObject go, int layerMask, string tag)
     {
         return (layerMask & (1 << go.layer)) != 0 && go.CompareTag(tag);
@@ -6358,6 +7631,40 @@ public static class GameObjectExtension
                 return true;
         }
         return false;
+    }
+
+    public static T GetOrAddComponent<T>(this GameObject self) where T : Component
+    {
+        return self.GetComponent<T>() ?? self.AddComponent<T>();
+    }
+
+    public static Component GetOrAddComponent(this GameObject self, Type type)
+    {
+        return self.GetComponent(type) ?? self.AddComponent(type);
+    }
+
+    public static GameObject[] GetChildren(this GameObject self, bool includeInactive = false)
+    {
+        return self
+            .GetComponentsInChildren<Transform>(includeInactive)
+            .Where(c => c != self.transform)
+            .Select(c => c.gameObject)
+            .ToArray();
+    }
+
+    public static T GetComponentInChildrenWithoutSelf<T>(this GameObject self) where T : Component
+    {
+        return self.GetComponentsInChildrenWithoutSelf<T>().FirstOrDefault();
+    }
+
+    public static T[] GetComponentsInChildrenWithoutSelf<T>(this GameObject self) where T : Component
+    {
+        return self.GetComponentsInChildren<T>().Where(c => self != c.gameObject).ToArray();
+    }
+
+    public static T[] GetComponentsInChildrenWithoutSelf<T>(this GameObject self, bool includeInactive) where T : Component
+    {
+        return self.GetComponentsInChildren<T>(includeInactive).Where(c => self != c.gameObject).ToArray();
     }
 
 }
@@ -6532,32 +7839,32 @@ public static class TransformExtensions
     /// </summary>
     /// <param name="transform"></param>
     /// <param name="dx"></param>
-    public static void IncX(this Transform transform, float dx)
+    public static void AddX(this Transform transform, float dx)
     {
         SetX(transform, transform.position.x + dx);
     }
 
-    public static void IncLocalX(this Transform transform, float dx)
+    public static void AddLocalX(this Transform transform, float dx)
     {
         SetLocalX(transform, transform.localPosition.x + dx);
     }
 
-    public static void IncY(this Transform transform, float dy)
+    public static void AddY(this Transform transform, float dy)
     {
         SetY(transform, transform.position.y + dy);
     }
 
-    public static void IncLocalY(this Transform transform, float dy)
+    public static void AddLocalY(this Transform transform, float dy)
     {
         SetLocalY(transform, transform.localPosition.y + dy);
     }
 
-    public static void IncZ(this Transform transform, float dz)
+    public static void AddZ(this Transform transform, float dz)
     {
         SetZ(transform, transform.position.z + dz);
     }
 
-    public static void IncLocalZ(this Transform transform, float dz)
+    public static void AddLocalZ(this Transform transform, float dz)
     {
         SetLocalZ(transform, transform.localPosition.z + dz);
     }
@@ -6572,14 +7879,14 @@ public static class TransformExtensions
         return result;
     }
 
-   
+
 
     /// <summary>
     /// 移动本地坐标到某一坐标
     /// </summary>
     /// <param name="transform"></param>
     /// <param name="target"></param>
-    public static void LocalMove(this Transform transform,Transform target)
+    public static void LocalMove(this Transform transform, Transform target)
     {
         Vector3 pos = target.TransformPoint(transform.localPosition);
         transform.localPosition = transform.InverseTransformPoint(pos);
@@ -6757,7 +8064,7 @@ public static class TransformExtensions
     /// <param name="dir"></param>
     /// <param name="offset">图片偏移值，因为是像素对齐，不是图片对齐，所以这个值对于带有透明通道的图有用</param>
     /// <returns></returns>
-    public static Transform AlginScreen(this Transform transform,AlginDir dir,float offset, Camera camera)
+    public static Transform AlginScreen(this Transform transform, AlginDir dir, float offset, Camera camera)
     {
         camera = camera == null ? Camera.main : camera;
         Vector3 pos = transform.position;
@@ -7360,6 +8667,66 @@ public static class ComponentExtension
         trans.SetParent(parentTrans);
         return component;
     }
+
+    public static T GetOrAddComponent<T>(this Component self) where T : Component
+    {
+        return self.GetComponent<T>() ?? self.gameObject.AddComponent<T>();
+    }
+
+    public static T AddComponent<T>(this Component self) where T : Component
+    {
+        return self.gameObject.AddComponent<T>();
+    }
+
+    public static GameObject[] GetChildren(this Component self, bool includeInactive = false)
+    {
+        return self
+            .GetComponentsInChildren<Transform>(includeInactive)
+            .Where(c => c != self.transform)
+            .Select(c => c.gameObject)
+            .ToArray();
+    }
+
+    public static void RemoveComponent<T>(this Component self) where T : Component
+    {
+        GameObject.Destroy(self.GetComponent<T>());
+    }
+
+    public static void RemoveComponents<T>(this Component self) where T : Component
+    {
+        foreach (Component component in self.GetComponents<T>())
+        {
+            GameObject.Destroy(component);
+        }
+    }
+
+    public static void RemoveComponentImmediate<T>(this Component self) where T : Component
+    {
+        GameObject.DestroyImmediate(self.GetComponent<T>());
+    }
+
+    public static void RemoveComponentsImmediate<T>(this Component self) where T : Component
+    {
+        foreach (Component component in self.GetComponents<T>())
+        {
+            GameObject.DestroyImmediate(component);
+        }
+    }
+
+    public static GameObject FindDeep(this Component self, string name, bool includeInactive = false)
+    {
+        var children = self.GetComponentsInChildren<Transform>(includeInactive);
+        foreach (var transform in children)
+        {
+            if (transform.name == name)
+            {
+                return transform.gameObject;
+            }
+        }
+        return null;
+    }
+
+
 }
 #endregion
 
@@ -7480,7 +8847,7 @@ public static class Util
         start = start >= 0 ? Math.Min(start, sourceLength) : Math.Max(sourceLength + start, 0);
         // ISSUE: explicit reference operation
         // ISSUE: variable of a reference type
-        int?local = @length;
+        int? local = @length;
         int num1;
         if (length.HasValue)
         {
@@ -7491,7 +8858,7 @@ public static class Util
         else
             num1 = Math.Max(sourceLength - start, 0);
         int? nullable1 = new int?(num1);
-      // ISSUE: explicit reference operation
+        // ISSUE: explicit reference operation
         local = nullable1;
     }
 }
